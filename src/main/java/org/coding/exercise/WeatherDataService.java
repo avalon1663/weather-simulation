@@ -1,6 +1,9 @@
 package org.coding.exercise;
 
+import org.apache.commons.math3.distribution.UniformIntegerDistribution;
 import org.coding.exercise.common.Condition;
+import org.coding.exercise.common.Coordinates;
+import org.coding.exercise.common.SimulationLog;
 import org.coding.exercise.service.DefaultMarkovChainSimulation;
 import org.joda.time.LocalDateTime;
 
@@ -13,16 +16,23 @@ public class WeatherDataService {
                 service = new DefaultMarkovChainSimulation();
         Random random = new Random();
 
-        Condition init = Condition.values()[random.nextInt(3)];
+        Condition prev =
+                Condition.values()[random.nextInt(3)];
+        LocalDateTime dateTime = LocalDateTime.now();
 
-        System.out.println(String.format("Initial condition %s", init.name()));
+        Coordinates coordinates =
+                new Coordinates("Melbourne", -37.83, 144.98, 7);
+
+        System.out.println(String.format("Initial condition %s", prev.name()));
 
         for (int i = 0; i < 100; i++) {
-            Condition next =
-                    service.start(LocalDateTime.now(), init);
-            System.out.println(String.format("Round %s, condition %s", i + 1, next.name()));
+            SimulationLog next =
+                    service.start(coordinates, dateTime, prev);
+            System.out.println(String.format("Round %s, %s", i + 1, next));
 
-            Thread.sleep(random.nextInt(1000));
+            Thread.sleep(1000);
+
+            dateTime = dateTime.plusDays(new UniformIntegerDistribution(5, 10).sample());
         }
     }
 }

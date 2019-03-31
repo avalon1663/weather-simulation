@@ -1,9 +1,9 @@
 package org.coding.exercise.service;
 
 import org.apache.commons.math3.distribution.EnumeratedIntegerDistribution;
-import org.coding.exercise.common.Condition;
-import org.coding.exercise.common.MarkovChainFeature;
-import org.coding.exercise.common.Range;
+import org.apache.commons.math3.distribution.NormalDistribution;
+import org.apache.commons.math3.distribution.UniformRealDistribution;
+import org.coding.exercise.common.*;
 import org.joda.time.LocalDateTime;
 
 import java.util.Arrays;
@@ -12,10 +12,20 @@ import java.util.stream.IntStream;
 
 public class DefaultMarkovChainSimulation {
 
-    public Condition start(LocalDateTime dateTime, Condition initialCondition) {
+    public SimulationLog start(Coordinates coordinates, LocalDateTime dateTime, Condition prev) {
         MarkovChainFeature feature =
                 this.findMarkovChainFeature(dateTime);
-        double[] matrix = feature.getTransitionMatrix()[initialCondition.ordinal()];
+        Condition next =
+                this.simulateCondition(feature, prev);
+        double pressure = this.simulatePressure(feature);
+        double humidity = this.simulateHumidity(feature);
+        double temperature = this.simulateTemperature(feature);
+
+        return new SimulationLog(coordinates, dateTime, next, pressure, humidity, temperature);
+    }
+
+    public Condition simulateCondition(MarkovChainFeature feature, Condition prev) {
+        double[] matrix = feature.getTransitionMatrix()[prev.ordinal()];
 
         EnumeratedIntegerDistribution dist =
                 new EnumeratedIntegerDistribution(
@@ -23,6 +33,34 @@ public class DefaultMarkovChainSimulation {
         int nextIndex = dist.sample();
 
         return Condition.values()[nextIndex];
+    }
+
+    public double simulatePressure(MarkovChainFeature feature) {
+        Range<Double>
+                range = feature.getHumidity();
+        UniformRealDistribution
+                dist = new UniformRealDistribution(range.getMinimum(), range.getMaximum());
+        return dist.sample();
+    }
+
+    public double simulateHumidity(MarkovChainFeature feature) {
+        Range<Double>
+                range = feature.getHumidity();
+        double mean = (range.getMinimum() + range.getMaximum()) / 2;
+
+        NormalDistribution
+                dist = new NormalDistribution(mean, range.getMaximum() - mean);
+        return dist.sample();
+    }
+
+    public double simulateTemperature(MarkovChainFeature feature) {
+        Range<Double>
+                range = feature.getTemperature();
+        double mean = (range.getMinimum() + range.getMaximum()) / 2;
+
+        NormalDistribution
+                dist = new NormalDistribution(mean, range.getMaximum() - mean);
+        return dist.sample();
     }
 
     public MarkovChainFeature findMarkovChainFeature(LocalDateTime dateTime) {
@@ -66,7 +104,7 @@ public class DefaultMarkovChainSimulation {
                         new double[][]{
                                 new double[]{0.35D, 0.2D, 0.45D},
                                 new double[]{0.4D, 0.4D, 0.2D},
-                                new double[]{0.35D, 0.1D, 0.55D},
+                                new double[]{0.45D, 0.1D, 0.45D},
                         }));
     }
 }
