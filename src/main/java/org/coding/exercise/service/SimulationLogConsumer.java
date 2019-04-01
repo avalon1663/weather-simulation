@@ -54,4 +54,12 @@ public class SimulationLogConsumer implements Runnable {
                         String.valueOf(new Double(simulationLog.getHumidity()).intValue()));
         return String.join("|", attributes).concat("\n");
     }
+
+    public BlockingQueue<SimulationLog> getMessageQueue() {
+        return messageQueue;
+    }
+
+    public OutputStream getOutput() {
+        return output;
+    }
 }
