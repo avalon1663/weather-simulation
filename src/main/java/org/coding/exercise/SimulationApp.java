@@ -17,7 +17,7 @@ public class SimulationApp {
 
     public static void main(String[] args) {
         LocalDateTime dateTime =
-                new LocalDateTime().withYear(2017).withMonthOfYear(11).withDayOfMonth(1);
+                new LocalDateTime().withYear(2017).withMonthOfYear(1).withDayOfMonth(1);
         ExecutorService pool =
                 Executors.newFixedThreadPool(10);
         Runtime.getRuntime().addShutdownHook(new Thread(pool::shutdown));

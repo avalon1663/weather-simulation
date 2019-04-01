@@ -4,6 +4,8 @@ import org.coding.exercise.common.SimulationLog;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
@@ -47,9 +49,9 @@ public class SimulationLogConsumer implements Runnable {
                                 String.valueOf((int) simulationLog.getCoordinates().getElevation()))),
                         simulationLog.getDateTime().toString(),
                         simulationLog.getCondition().name(),
-                        String.valueOf(simulationLog.getPressure()),
-                        String.valueOf(simulationLog.getHumidity()),
-                        String.valueOf(simulationLog.getTemperature()));
+                        String.valueOf(new BigDecimal(simulationLog.getTemperature()).setScale(1, RoundingMode.HALF_UP).doubleValue()),
+                        String.valueOf(new BigDecimal(simulationLog.getPressure()).setScale(1, RoundingMode.HALF_UP).doubleValue()),
+                        String.valueOf(new Double(simulationLog.getHumidity()).intValue()));
         return String.join("|", attributes).concat("\n");
     }
 }

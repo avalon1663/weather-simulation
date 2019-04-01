@@ -37,7 +37,7 @@ public class SimulationLogProducer implements Runnable {
     public void run() {
         LocalDateTime
                 currDateTime = this.startDateTime;
-        Condition initCondition = this.simulator.randomCondition();
+        Condition initCondition = this.getSimulator().randomCondition();
         try {
             this.produceLog(currDateTime, this.endDateTime, initCondition);
         } catch (InterruptedException e) {
@@ -51,13 +51,33 @@ public class SimulationLogProducer implements Runnable {
 
         while (prevDateTime.isBefore(endDateTime)) {
             SimulationLog simulationLog =
-                    this.simulator.simulate(this.coordinates, prevDateTime, prevCondition);
-            this.messageQueue.put(simulationLog);
+                    this.getSimulator().simulate(this.getCoordinates(), prevDateTime, prevCondition);
+            this.getMessageQueue().put(simulationLog);
 
             Thread.sleep(1000);
 
             prevCondition = simulationLog.getCondition();
             prevDateTime = prevDateTime.plusSeconds(forwardTimeDist.sample());
         }
+    }
+
+    public Coordinates getCoordinates() {
+        return coordinates;
+    }
+
+    public LocalDateTime getStartDateTime() {
+        return startDateTime;
+    }
+
+    public LocalDateTime getEndDateTime() {
+        return endDateTime;
+    }
+
+    public DefaultMarkovChainSimulator getSimulator() {
+        return simulator;
+    }
+
+    public BlockingQueue<SimulationLog> getMessageQueue() {
+        return messageQueue;
     }
 }
