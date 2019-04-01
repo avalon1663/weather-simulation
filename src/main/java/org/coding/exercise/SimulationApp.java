@@ -16,16 +16,18 @@ import java.util.concurrent.Executors;
 public class SimulationApp {
 
     public static void main(String[] args) {
-        LocalDateTime dateTime =
+        LocalDateTime startDateTime =
                 new LocalDateTime().withYear(2017).withMonthOfYear(1).withDayOfMonth(1);
+        LocalDateTime endDateTime = startDateTime.plusDays(30);
+
         ExecutorService pool =
-                Executors.newFixedThreadPool(10);
+                Executors.newFixedThreadPool(16);
         Runtime.getRuntime().addShutdownHook(new Thread(pool::shutdown));
 
         BlockingQueue<SimulationLog>
-                messageQueue = new ArrayBlockingQueue<>(100);
+                messageQueue = new ArrayBlockingQueue<>(32 * 1024);
         cityList().stream()
-                .map(each -> new SimulationLogProducer(messageQueue, each, dateTime, dateTime.plusDays(30)))
+                .map(each -> new SimulationLogProducer(messageQueue, each, startDateTime, endDateTime))
                 .forEach(pool::submit);
         SimulationLogConsumer consumer =
                 new SimulationLogConsumer(messageQueue, System.out);
@@ -36,7 +38,14 @@ public class SimulationApp {
         return Arrays.asList(
                 new Coordinates("Sydney", -33.86, 151.21, 39),
                 new Coordinates("Melbourne", -37.83, 144.98, 7),
-                new Coordinates("Adelaide", -34.92, 138.62, 48)
+                new Coordinates("Adelaide", -34.92, 138.62, 48),
+                new Coordinates("Launceston", -41.429825, 147.157135, 42),
+                new Coordinates("Townsville", -19.258965, 146.816956, 35),
+                new Coordinates("Cairns", -16.925491, 145.754120, 45),
+                new Coordinates("Perth", -31.953512, 115.857048, 52),
+                new Coordinates("Bendigo", -36.757786, 144.278702, 40),
+                new Coordinates("Brisbane", -27.470125, 153.021072, 43),
+                new Coordinates("Wollongong", -34.425072, 150.893143, 38)
         );
     }
 }
