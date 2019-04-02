@@ -16,27 +16,22 @@ import java.util.concurrent.Executors;
 public class SimulationApp {
 
     public static void main(String[] args) {
-        LocalDateTime startDateTime =
-                new LocalDateTime().withYear(2017).withMonthOfYear(1).withDayOfMonth(1);
-        LocalDateTime endDateTime = startDateTime.plusDays(30);
+        if (args.length < 1) {
+            System.err.println("Usage: SimulationApp.java <start-date-iso-format>, e.g. SimulationApp.java 2017-01-01");
+            System.exit(-1);
+        }
+        LocalDateTime startDate =
+                LocalDateTime.parse(args[0]);
+        LocalDateTime endDate = startDate.plusDays(365);
 
         List<Coordinates> cityList = cityList();
 
-        ExecutorService pool =
-                Executors.newFixedThreadPool(cityList.size() + 1);
-        Runtime.getRuntime().addShutdownHook(new Thread(pool::shutdown));
-
-        BlockingQueue<SimulationLog>
-                messageQueue = new ArrayBlockingQueue<>(32 * 1024);
-        cityList.stream()
-                .map(each -> new SimulationLogProducer(messageQueue, each, startDateTime, endDateTime))
-                .forEach(pool::submit);
-        SimulationLogConsumer consumer =
-                new SimulationLogConsumer(messageQueue, System.out);
-        pool.submit(consumer);
+        SimulationApp
+                simulationApp = new SimulationApp();
+        simulationApp.waitForCompletion(startDate, endDate, cityList);
     }
 
-    public static List<Coordinates> cityList() {
+    private static List<Coordinates> cityList() {
         return Arrays.asList(
                 new Coordinates("Sydney", -33.86, 151.21, 39),
                 new Coordinates("Melbourne", -37.83, 144.98, 7),
@@ -49,5 +44,20 @@ public class SimulationApp {
                 new Coordinates("Brisbane", -27.470125, 153.021072, 43),
                 new Coordinates("Wollongong", -34.425072, 150.893143, 38)
         );
+    }
+
+    public void waitForCompletion(LocalDateTime startDate, LocalDateTime endDate, List<Coordinates> cityList) {
+        ExecutorService pool =
+                Executors.newFixedThreadPool(cityList.size() + 1);
+        Runtime.getRuntime().addShutdownHook(new Thread(pool::shutdown));
+
+        BlockingQueue<SimulationLog>
+                messageQueue = new ArrayBlockingQueue<>(32 * 1024);
+        cityList.stream()
+                .map(each -> new SimulationLogProducer(messageQueue, each, startDate, endDate))
+                .forEach(pool::submit);
+        SimulationLogConsumer consumer =
+                new SimulationLogConsumer(messageQueue, System.out);
+        pool.submit(consumer);
     }
 }
