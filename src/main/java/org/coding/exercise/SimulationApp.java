@@ -20,13 +20,15 @@ public class SimulationApp {
                 new LocalDateTime().withYear(2017).withMonthOfYear(1).withDayOfMonth(1);
         LocalDateTime endDateTime = startDateTime.plusDays(30);
 
+        List<Coordinates> cityList = cityList();
+
         ExecutorService pool =
-                Executors.newFixedThreadPool(16);
+                Executors.newFixedThreadPool(cityList.size() + 1);
         Runtime.getRuntime().addShutdownHook(new Thread(pool::shutdown));
 
         BlockingQueue<SimulationLog>
                 messageQueue = new ArrayBlockingQueue<>(32 * 1024);
-        cityList().stream()
+        cityList.stream()
                 .map(each -> new SimulationLogProducer(messageQueue, each, startDateTime, endDateTime))
                 .forEach(pool::submit);
         SimulationLogConsumer consumer =

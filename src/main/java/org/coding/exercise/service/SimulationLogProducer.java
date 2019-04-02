@@ -54,7 +54,7 @@ public class SimulationLogProducer implements Runnable {
                     this.getSimulator().simulate(this.getCoordinates(), prevDateTime, prevCondition);
             this.getMessageQueue().put(simulationLog);
 
-            Thread.sleep(2500);
+            Thread.sleep(1000);
 
             prevCondition = simulationLog.getCondition();
             prevDateTime = prevDateTime.plusSeconds(forwardTimeDist.sample());

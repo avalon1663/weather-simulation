@@ -10,10 +10,12 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
 
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.*;
 
 @RunWith(JUnit4.class)
 public class SimulationLogConsumerTest {
@@ -29,6 +31,27 @@ public class SimulationLogConsumerTest {
                 new SimulationLogConsumer(blockingQueue, output);
         Assert.assertEquals(blockingQueue, consumer.getMessageQueue());
         Assert.assertEquals(output, consumer.getOutput());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void consumeLog() throws IOException, InterruptedException {
+        BlockingQueue<SimulationLog>
+                messageQueue = mock(BlockingQueue.class);
+        OutputStream output = new ByteArrayOutputStream();
+        LocalDateTime now = LocalDateTime.now();
+        Condition condition = Condition.SUNNY;
+
+        int timeout = 5;
+        TimeUnit timeUnit = TimeUnit.SECONDS;
+
+        SimulationLogConsumer consumer =
+                new SimulationLogConsumer(messageQueue, output);
+        SimulationLog simulationLog =
+                new SimulationLog(new Coordinates("name", 1D, 2D, 3D), now, condition, 4D, 5D, 6D);
+        when(messageQueue.poll(timeout, timeUnit)).thenReturn(simulationLog);
+
+        consumer.consumeLog(messageQueue, output, timeout, timeUnit);
     }
 
     @Test

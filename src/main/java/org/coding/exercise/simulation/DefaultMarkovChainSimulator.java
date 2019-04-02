@@ -56,7 +56,7 @@ public class DefaultMarkovChainSimulator {
     public double simulateHumidity(DefaultMarkovChainFeature feature) {
         ParameterRange
                 parameterRange = feature.getHumidityRange();
-        double mean = (parameterRange.getMinimum() + parameterRange.getMaximum()) / 2;
+        double mean = this.median(parameterRange.getMinimum(), parameterRange.getMaximum());
 
         NormalDistribution
                 dist = new NormalDistribution(mean, 1);
@@ -66,14 +66,18 @@ public class DefaultMarkovChainSimulator {
     public double simulateTemperature(DefaultMarkovChainFeature feature, LocalDateTime dateTime) {
         ParameterRange
                 parameterRange = feature.getTemperatureRange();
-        double mean = (parameterRange.getMinimum() + parameterRange.getMaximum()) / 2;
+        double mean = this.median(parameterRange.getMinimum(), parameterRange.getMaximum());
 
         int hourOfDay = dateTime.getHourOfDay();
 
         if (hourOfDay >= 8 && hourOfDay <= 20) {
-            return new NormalDistribution(mean, 5).sample();
+            return new NormalDistribution(mean, mean * 0.2D).sample();
         } else
-            return new NormalDistribution(parameterRange.getMinimum(), 5).sample();
+            return new NormalDistribution(parameterRange.getMinimum(), mean * 0.1D).sample();
+    }
+
+    protected double median(double v1, double v2) {
+        return (v1 + v2) / 2;
     }
 
     public DefaultMarkovChainFeature findMarkovChainFeature(LocalDateTime dateTime) {

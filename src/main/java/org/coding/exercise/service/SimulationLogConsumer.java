@@ -24,20 +24,19 @@ public class SimulationLogConsumer implements Runnable {
 
     public void run() {
         try {
-            this.consumeLog(this.messageQueue, this.output);
+            while (true) {
+                this.consumeLog(this.messageQueue, this.output, 5, TimeUnit.MINUTES);
+                Thread.sleep(100);
+            }
         } catch (InterruptedException | IOException e) {
             e.printStackTrace();
         }
     }
 
-    protected void consumeLog(BlockingQueue<SimulationLog> messageQueue, OutputStream output) throws IOException, InterruptedException {
-        while (true) {
-            SimulationLog
-                    simulationLog = messageQueue.poll(5, TimeUnit.MINUTES);
-            output.write(this.formatLog(simulationLog).getBytes());
-
-            Thread.sleep(100);
-        }
+    protected void consumeLog(BlockingQueue<SimulationLog> messageQueue, OutputStream output, int timeout, TimeUnit timeUnit) throws IOException, InterruptedException {
+        SimulationLog simulationLog =
+                messageQueue.poll(timeout, timeUnit);
+        output.write(this.formatLog(simulationLog).getBytes());
     }
 
     protected String formatLog(SimulationLog simulationLog) {
